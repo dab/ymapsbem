@@ -1,10 +1,12 @@
 # Yandex.Maps API and BEM
 
-One of the most frequent use case for the Yandex.Maps API is creation of a menu to show different types of PoI (Points of Interest) - geoobject collections. This menu helps an end user to choose which types of POI to see at any given time. Here is an [example](http://dimik.github.com/ymaps/examples/group-menu/menu03.html). Now we will implement all above based on [BEM methodology](http://bem.info/method/).
+One of the most frequent use case for the Yandex.Maps API is creation of a menu to show different types of PoI (Points of Interest) - geoobject collections. This menu helps an end user to choose which types of POI to see at any given time. Here is an [example](http://dimik.github.com/ymaps/examples/group-menu/menu03.html).
 
-## Firsts steps
+Now we will implement all above based on [BEM methodology](https://bem.info/method/).
 
-BEM developers created a [project-stub](http://bem.info/tutorials/project-stub/) for a quick start with BEM project. We are going to use it.
+## The firsts steps
+
+BEM developers created a [project-stub](http://bem.info/tutorials/project-stub/) for a quick start with any BEM project. We are going to use it.
 
 Clone the project-stub and install all required dependences:
 
@@ -14,7 +16,7 @@ cd shopsList
 npm install
 ```
 
-Now we can use the project locally. To test that everything works properly, open the project folder and run `enb server`. Than check the result at [localhost:8080/desktop.bundles/index/index.html](http://localhost:8080/desktop.bundles/index/index.html) in browser:
+Now we can use the project locally. To test that everything works properly, open the project folder and run `enb server`. Check the result at [localhost:8080/desktop.bundles/index/index.html](http://localhost:8080/desktop.bundles/index/index.html) in browser:
 
 <img src="http://zloylos.me/other/imgs/ymapsbem/project_stub.png" alt="BEM project stub compilled page" border="0"/>
 
@@ -22,17 +24,17 @@ Now we can proceed to the next step.
 
 ## General description of the project
 
-We need to create several blocks:
+We should to divide our page into the logic sections and create the separate blocks for them:
 
-* `map` block for the map itself
-* `sidebar` block (a left column) for a `menu` block
-* `menu` block for a list of organizations by groups showing.
+* A `map` block for the map itself
+* A `sidebar` block (a left column) for a `menu` block
+* The `menu` block for a list of organizations groupped by the categories.
 
-According to BEM methodology the blocks should not “know” about each other. So, we need to create one more intermediate block that will lister to the menu clicks and interact with the map. We will call this block `i-geo-controller`.
+According to the BEM methodology the blocks should not know about each other: they should be completely independent units. So, we need to create one more intermediate block that will listen to the menu clicks and interact with the map. We will call this block `i-geo-controller`.
 
-## Page tree description – BEMJSON declaration
+## Page tree description – the BEMJSON declaration
 
-We considered all details of the page structure and defined the main blocks, so it should be easy to declare the page in BEMJSON. Now we start to write all above in JSON-styled code.
+We considered all details of the page structure and defined the main blocks, so it should be easy to declare the page in [BEMJSON](https://en.bem.info/technology/bemjson/v2/bemjson/). Now we start to write all above in JSON-styled code.
 
 The page structure is shown below:
 
@@ -48,7 +50,7 @@ The page structure is shown below:
 <img src="http://zloylos.me/other/imgs/ymapsbem/index_bemjson.png" alt="Page structure">
 
 ￼
-An example of BEMJSON declaration:
+An example of the BEMJSON declaration:
 
 ````js
 {
@@ -77,9 +79,9 @@ An example of BEMJSON declaration:
 
 You can see the source code in [desktop.bundles/index/index.bemjson.js](https://github.com/zloylos/ymaps-and-bem/blob/master/desktop.bundles/index-en/index-en.bemjson.js).
 
-## `map` block
+## The `map` block
 
-We start development from the main block — `map`. First of all we should connect to the API with all the needed options. We could implement this with a new block called `i-API`. But, we could also choose the more convenient way, and implement all required options in one block using modifiers. We set `api` modifier with `ymaps` value for `map` block. In the example we will use a [dynamic API](http://api.yandex.ru/maps/doc/jsapi/). However, we could use a [static API](http://api.yandex.ru/maps/doc/staticapi/) instead.
+We start development from the main block — `map`. First of all we should connect to the API with all the needed options. We could implement this with a new block called `i-API`. But, we could also choose the more convenient way, and implement all required options in one block using modifiers. We set the `api` modifier with the `ymaps` value for the `map` block. In the example we will use a [dynamic API](http://api.yandex.ru/maps/doc/jsapi/). However, we could use a [static API](http://api.yandex.ru/maps/doc/staticapi/) instead.
 
 To ease our work with the map, we should design additional handy placemarks for the interface. For this, we should process `geoObjects` field with [placemarks or placemark collections](http://api.yandex.com/maps/doc/jsapi/2.x/dg/concepts/geoobjects.xml).
 
@@ -107,18 +109,17 @@ We create the following interface:
 ```
 This code covers almost 90% of all possible use cases.
 
-## `menu` block
+## The `menu` block
 
-We should implement a two-level menu. For this, we create `menu` block to catch the clicks on the groups and elements. We need to create the following elements:
+We should implement a two-level menu. For this, we create the `menu` block to catch the clicks on the groups and elements. We need to create the following elements:
 
 * `item` — a menu item.
 * `content` — a container for the items.
 * `title` — a group title.
 
-We include one menu block into another one to build needed hierarchy.
-
 Here is a simple menu example declared in BEMJSON:
-````js
+
+```js
 {
     block: 'menu',
     content: [
@@ -141,26 +142,29 @@ Here is a simple menu example declared in BEMJSON:
         }
     ]
 }
-````
+```
 
-## `i-geo-controller` block
+We include one menu block into another one to build needed hierarchy.
 
-`i-geo-controller` is a block-controller that listens to `menu` block events, such as `menuItemClick` and `menuGroupClick` to react on their behavior and make definite actions on the map.
+## The `i-geo-controller` block
+
+`i-geo-controller` is a block-controller that listens to the `menu` block events, such as `menuItemClick` and `menuGroupClick` to react on their behavior and make definite actions on the map.
 
 In our example this block has the following tasks:
 
 * If there is a click on the placemark, the controller should center the map on this placemark and open the balloon.
 * If there is a click on the group, the controller should show or hide this group.
 
-In addition to interaction with the map, the controller block must ”know“ if the map is ready for objects management. To implement all above, `map` block should emmit `map-inited` event, and the controller block should listen for this event trigger and keep a link of the map instance.
+In addition to interaction with the map, the controller block must know if the map is ready for objects management. To implement all above, `map` block should emmit `map-inited` event, and the controller block should listen for this event trigger and keep a link of the map instance.
 
 <img src="http://zloylos.me/other/imgs/ymapsbem/blocks_scheme-en.png" alt="Scheme of work blocks">
-
 
 For example, [zloylos.github.io/ymapsbem/index-en.html](zloylos.github.io/ymapsbem/index-en.html).
 
 <img src="http://zloylos.me/other/imgs/ymapsbem/ready-en.png" alt="Example">
 
 Thus, the example implemented with BEM methodology is more verbose than without BEM, we get well-structured and easy-to-support code base. So, we get benefit from scaling and expanding it easily, with no need in code rewriting, thanks to the methodology.
+
+More benefits of BEM methodology for the small projects find in the article [Scaling down the BEM methodology for small projects](https://en.bem.info/articles/bem-for-small-projects/) by [Maxim Shirshin](https://en.bem.info/authors/shirshin-maxim/).
 
 Thanks to [Alexander Tarmolov](http://twitter.com/tarmolov) for advice and support.
